@@ -10,25 +10,9 @@ const char* BGCOL = 0xd021;
 const char* COLS = 0xd800;
 const char BLACK = 0;
 const char WHITE =1;
-char[] MESSAGE = "hello world checkpoint2.3 hars0020!";
+char[] MESSAGE = "checkpoint2.3 hars0020!";
 
 void main(){
-*VIC_MEMORY = 0x14;
-memset(SCREEN, ' ', 40*25);
-memset(COLS, WHITE, 40*25);
-// Print the "hello world!" Message
-char* sc = SCREEN+40;
-char* msg = MESSAGE;
-while(*msg) {
-*sc++ = *msg++;
-}
-while(true) {
-if(*RASTER==54 || *RASTER==66) {
-*BGCOL = WHITE;
-} else {
-*BGCOL = BLACK;
-}
-}
 }
 void exit_hypervisor(){
 }
@@ -345,7 +329,6 @@ export struct SysCall[] SYSCALLS = {
 { JMP, &SYSCALL3F, NOP }
 };
 export align(0x100) struct SysCall[] SYSCALL_TRAPS= {
-{ JMP, &main,NOP}, 
 { JMP , &RESET,NOP}, 
 { JMP , &PAGFAULT,NOP}, 
 { JMP , &RESTORKEY,NOP}, 
