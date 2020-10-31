@@ -1,9 +1,6 @@
 // XMega65 Kernal Development Template
 // Each function of the kernal is a no-args function
 // The functions are placed in the SYSCALLS table surrounded by JMP and NOP
-
-#pragma cpu(rom6502)
-
 import "string"
 
 #pragma link("mega65hyper.ld")
@@ -479,7 +476,6 @@ break;
   return 1;
 }
 
-
 void main() {
 
 }
@@ -513,12 +509,35 @@ void syscall2() {
  void syscall04() {
  exit_hypervisor();
  }
- void syscall05() {
+ 
+void syscall05() {
+yield();
  exit_hypervisor();
- }
- void syscall06() {
- exit_hypervisor();
- }
+}
+
+
+
+void syscall06() {
+//Display PID of current process unsigned char pid;
+
+struct process_descriptor_block *pdb =(struct process_descriptor_block*)
+
+((unsigned short)stored_pdbs+(((unsigned short)running_pdb)<<8));
+
+print_to_screen("you are pid ");
+
+print_hex(pdb->process_id);
+
+  print_to_screen(" in pdb ");
+
+print_hex(running_pdb);
+
+print_newline();
+
+exit_hypervisor();
+}
+
+
  void syscall07() {
  exit_hypervisor();
  }
@@ -691,24 +710,32 @@ void syscall2() {
  exit_hypervisor();
  }
  void RESET() {
-
+//intialize screen memory, and select correct font
 *VIC_MEMORY = 0x14;
-
+//fill the screen with spaces
 memset(SCREEN, ' ', 40*25);
-
+//set the colour of every character on the screen the white
 memset(COLS, WHITE, 40*25);
-
+////print the "hello world!" message
 char* sc = SCREEN+40; //display it one line down on the screen
-
-
+// a simple copy routine to copy the string
+//call print to screen
 
 current_screen_line = SCREEN;
     print_newline();
+print_to_screen(MESSAGE);
     print_newline();
     print_newline();
 
-initialise_pdb(0,"program1.prg");  
+
+// Load program 2 into PDB #0
+initialise_pdb(0,"program2.prg");
 load_program(0);
+
+// Load program 2 into PDB #1
+initialise_pdb(1,"program2.prg");
+load_program(1);
+
 resume_pdb(0);
 //    describe_pdb(0);
    
@@ -744,17 +771,24 @@ exit_hypervisor();
  exit_hypervisor();
  }
  
-
+//Now we select the SYSCALL segment to hold the SYSCALL/trap entry point table.
 #pragma data_seg(Syscall)
 
+//the structure of each entry point is JMP <handle address> + NOP,
+//we have a char (xjmp) to hold the opcode for the JMP instruction,
+//and then put the address of the SYSCALL/trap handle in the next
+//two points as a pointer, and end with the NOP instruction opcode.
  struct Syscall {
-char xjmp;        
-void()* syscall;  
-char xnop;        
+char xjmp;        //Holds $4c, the JMP $nnn opcode
+void()* syscall;  //holds hander address, will be the target of the JMP
+char xnop;        //holds $EA, the NOP opcode
 };
-
+// To save writing 0x4C and 0xEA all the time, we define them as constants
 const char JMP = 0x4c; const char NOP = 0xea;
-
+// Now we can have a nice table of up to 64 SYSCALL handlers expressed
+// in a fairly readable and easy format.
+// Each line is an instance of the struct SysCall from above, with the JMP
+// opcode value, the address of the handler routine and the NOP opcode value.
   export struct Syscall[] SYSCALLS = {
   { JMP, &syscall00, NOP },
   { JMP, &syscall01, NOP },
@@ -822,7 +856,9 @@ const char JMP = 0x4c; const char NOP = 0xea;
   { JMP, &syscall3F, NOP }
  
 };
-
+// In this example we had only two SYSCALLs defined, so rather than having
+// another 62 lines, we can just ask KickC to make the TRAP table begin
+// at the next multiple of $100, i.e., at $8100.
 export align(0x100) struct Syscall[] TRAPS = {
 { JMP, &RESET, NOP },
 { JMP, &PAGFAULT, NOP },
@@ -884,3 +920,5 @@ XXX - Don't forget to call resume_pdb(0) immediately after load_program(0)
 
 XXX - Copy your trap handler functions and entry point tables from os5.2.kc
 */
+
+ 
