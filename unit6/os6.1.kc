@@ -47,8 +47,8 @@ const unsigned char *ipc_messages = $CB00;
 volatile unsigned char ipc_message_count;
 
 void queue_message(unsigned char from, unsigned char to,
-									unsigned char priority, unsigned char sequence,
-									unsigned char *message)
+unsigned char priority, unsigned char sequence,
+unsigned char *message)
 {
 	if (ipc_message_count>15) return;
 	
@@ -482,26 +482,26 @@ void main() {
 
 unsigned char get_next_message_id(unsigned char receiver) 
 {
-	unsigned char best_message=0xff;
-	for(unsigned char i=0;i<16;i++) 
-	{
-		struct ipc_message *m=(struct ipc_message *)
-				(ipc_messages+i*16);
+unsigned char best_message=0xff;
+for(unsigned char i=0;i<16;i++) 
+{
+struct ipc_message *m=(struct ipc_message *)
+(ipc_messages+i*16);
 		
-		if (m->to==receiver) 
-		{
-			if (best_message==0xff) {
-				best_message=i;
-			}
-		}
-	}
-	return best_message;
+if (m->to==receiver) 
+{
+if (best_message==0xff) {
+best_message=i;
+}
+}
+}
+return best_message;
 }
 
  
 struct ipc_message *get_pointer_to_message(unsigned char id)
 {
-	return (struct ipc_message *)(ipc_messages+id*16);
+return (struct ipc_message *)(ipc_messages+id*16);
 }
 
 /** NO. 7 - END*/
@@ -509,8 +509,8 @@ struct ipc_message *get_pointer_to_message(unsigned char id)
 
 void exit_hypervisor()
 {
-	// Exit hypervisor
-	*(char *)$D67F = $01;
+	
+*(char *)$D67F = $01;
 }
 
 void syscall1(){
@@ -552,28 +552,28 @@ void syscall2() {
 
 void syscall09() 
 {
-	struct process_descriptor_block *pdb =(struct process_descriptor_block*)
-	((unsigned short)stored_pdbs+(((unsigned short)running_pdb)<<8));
+struct process_descriptor_block *pdb =(struct process_descriptor_block*)
+((unsigned short)stored_pdbs+(((unsigned short)running_pdb)<<8));
 	
-	unsigned char caller_pid=pdb->process_id;
-	unsigned char message_id=get_next_message_id(caller_pid);
+unsigned char caller_pid=pdb->process_id;
+unsigned char message_id=get_next_message_id(caller_pid);
 
-	if (message_id!=0xFF) 
-	{
+if (message_id!=0xFF) 
+{
 		
-		struct ipc_message* m=get_pointer_to_message(message_id); // Copy it to the transfer area
-		dma_copy((unsigned short)m,$0300,16);
+struct ipc_message* m=get_pointer_to_message(message_id); // Copy it to the transfer area
+dma_copy((unsigned short)m,$0300,16);
 
 		
-		dequeue_message(message_id);
+dequeue_message(message_id);
 		
- 		exit_hypervisor();
+exit_hypervisor();
  
-	} else {
+} else {
 		
-		for(unsigned char i=0;i<16;i++)
-		*(unsigned char *)($0300+i)=0xff; exit_hypervisor();
-	}
+for(unsigned char i=0;i<16;i++)
+*(unsigned char *)($0300+i)=0xff; exit_hypervisor();
+}
 }
 
  void syscall0A() {
@@ -740,47 +740,47 @@ void syscall09()
  }
  void RESET() {
 		
-		*VIC_MEMORY = 0x14;
+*VIC_MEMORY = 0x14;
 		
-		memset(SCREEN, ' ', 40*25);
+memset(SCREEN, ' ', 40*25);
 		
-		memset(COLS, WHITE, 40*25);
+memset(COLS, WHITE, 40*25);
 
-		char* sc = SCREEN+40; //display it one line down on the screen
+char* sc = SCREEN+40; //display it one line down on the screen
 	
 
-		current_screen_line = SCREEN;
-    print_newline();
-    print_newline();
-    print_newline();
+current_screen_line = SCREEN;
+print_newline();
+print_newline();
+print_newline();
 	
 
 
 	
-		ipc_message_count=0;
+ipc_message_count=0;
 		
-		queue_message(0,1,1,1," cpoint 6.1 ");
+queue_message(0,1,1,1," cpoint 6.1 ");
 		
-		initialise_pdb(0,"program1.prg");
+initialise_pdb(0,"program1.prg");
 	
-		load_program(0);
+load_program(0);
 		
-		resume_pdb(0);
+resume_pdb(0);
 
 
 
 //    describe_pdb(0);
     
     
-		while(true)	{
-			if(*RASTER == 54 || *RASTER == 66) {
-				*BGCOL = WHITE;
-			} else {
-				*BGCOL = BLUE;
-			}	
-		}
-		exit_hypervisor();
- }
+while(true)	{
+if(*RASTER == 54 || *RASTER == 66) {
+*BGCOL = WHITE;
+} else {
+*BGCOL = BLUE;
+}	
+}
+exit_hypervisor();
+}
  void PAGFAULT() {
  exit_hypervisor();
  }
@@ -808,7 +808,7 @@ void syscall09()
 #pragma data_seg(Syscall)
 
 
- struct Syscall {
+struct Syscall {
 char xjmp;        //Holds $4c, the JMP $nnn opcode
 void()* syscall;  //holds hander address, will be the target of the JMP
 char xnop;        //holds $EA, the NOP opcode
